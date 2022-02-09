@@ -20,6 +20,6 @@ void BuddyFree(BuddyAllocator* alloc, void* memory);
 //merge, unisce bitmap e blocco libero in memoria
 void BitmapMerge(BitMap* bitmap, int idx);
 //imposta lo stato di tutti i nodi parents
-void SetParents(BitMap *bitmap1, int status, int bitNum);
+void SetParents(BitMap *bitmap1, int status, int numBit);
 //imposta lo stato di tutti i nodi figli
-void SetParents(BitMap *bitmap1, int status, int bitNum);
+void SetParents(BitMap *bitmap1, int status, int numBit);
