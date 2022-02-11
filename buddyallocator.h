@@ -22,4 +22,4 @@ void BitmapMerge(BitMap* bitmap, int idx);
 //imposta lo stato di tutti i nodi parents
 void SetParents(BitMap *bitmap1, int status, int numBit);
 //imposta lo stato di tutti i nodi figli
-void SetParents(BitMap *bitmap1, int status, int numBit);
+void SetChildren(BitMap *bitmap1, int status, int numBit);
