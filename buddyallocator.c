@@ -102,3 +102,76 @@ void* BuddyMalloc(BuddyAllocator* alloc, int size){
     bitmapPrint(&alloc->bitmap);
     return (void*)(returning+sizeof(int));
 }
+//free, rilascia la memoria allocata
+void BuddyFree(BuddyAllocator* alloc, void* memory){
+    printf("\nLibero blocco %p\n", memory);
+    if(!mem){ //il free di NULL ovviamente è inutile
+        printf("\n***ERRORE***:impossibile fare la free di NULL");
+        return;
+    }
+    int*pointer = (int*)memory;
+    int idxToFree = pointer[-1];//sto prendendo l'indice dal puntatore
+    printf("\nIndice da liberare : %d\n", idxToFree);
+    int sizeLvl = alloc->min_bucket_size*(1<<(alloc->num_levels - levelIdx(idxToFree)));
+    char *pointerToFree = alloc->buffer+startIdx(idxToFree) *sizeLvl;
+    assert("\nPuntatore non allineato" && (int *)pointerToFree == &p[-1]);
+    assert("\nDouble free" && BitmapBit(&alloc->bitmap, idxToFree));
+    SetChildren(&alloc->bitmap,0,idxToFree);
+    BitmapMerge(&alloc->bitmap,idxToFree);
+    printf("\nFree terminata, ecco la bitmap corrente:");
+    bitmapPrint(&alloc->bitmap);
+}
+//merge, unisce bitmap e blocco libero in memoria
+void BitmapMerge(BitMap* bitmap, int idx){
+    assert("\n***ERRORE***: impossibile fare merge su un bit libero" && !BitmapBit(bitmap,idx));
+    if(idx==0) return;
+    int buddy_idx = buddyIdx(idx);
+    if(!BitmapBit(bitmap,buddy_idx)){
+        printf("\nMerging del blocco %d e del suo buddy %d sul livello %d", idx,buddy_idx,levelIdx(idx));
+        int parent_idx = parentIdx(idx);
+        BitmapSet(bitmap,0,parent_idx);
+        BitmapMerge(bitmap,parent_idx);
+
+    }
+}
+//inizializza il buddy allocator e controlla se c'è abbastanza spazio nel buffer
+int BuddyAllocator_init(
+    BuddyAllocator* alloc,
+    int num_levels,
+    char* alloc_buffer,
+    int alloc_buffer_size,
+    char* bitmap_buffer,
+    int bitmap_buffer_size,
+    int min_bucket_size){
+        if (min_bucket_size<8){
+            printf("\n***ERRORE***:Min_bucket_size troppo piccolo");
+            return 0;
+        }
+        assert("\n***ERRORE***:Num livelli troppo grande" && num_levels<MAX_LEVEL);
+        //genero numero di bit per la bitmap ed ogni bit è buddy di min_bucket_size
+        int num_bits=(1<<(num_levels+1)) -1; //num allocazioni massime
+        assert("\n***ERRORE***: Memoria per la bitmap non sufficiente" && bitmap_buffer_size=>BitmapGetBytes(num_bits));
+        //se si usa una potenza di 2 allora posso utilizzare tutta la memoria a disposizione
+        if(levelIdx(alloc_buffer_size)!=log2(alloc_buffer_size)){
+            printf("\n**WARNING**:posso utilizzare solo %d bytes di %d forniti.\n",min_bucket_size<<num_levels, alloc_buffer_size);
+            printf("\n*INPUT*:premi Y per continuare e qualsiasi altro tasto per terminare");
+            int input;
+            scanf("%d", &input);
+            if(input!=1)return 0;
+            alloc_buffer_size = min_bucket_size<<num_levels; //size max gestibile
+            }
+            alloc->num_levels=num_levels;
+            alloc->buffer =alloc_buffer;
+            alloc->buffer_size =alloc_buffer_size;
+            alloc->min_bucket_size=min_bucket_size;
+            printf("\nINIT\n");
+            printf("\tmemoria gestita: %d bytes\n", alloc_buffer_size); // (1<<num_levels)*min_bucket_size  (2^5)*8 = 256 bytes
+            printf("\tlivelli: %d\n", num_levels);
+            printf("\tmin_bucket size: %d\n", min_bucket_size);
+            printf("\tbits_bitmap: %d\n", num_bits);
+            printf("\tmemoria bitmap: %d bytes usati di %d bytes forniti \n", BitmapGetBytes(num_bits), bitmap_buffer_size);
+            BitmapInit(&alloc->bitmap,num_bits,bitmap_buffer);
+            printf("\nbitmap allocata: ");
+            bitmapPrint(&alloc->bitmap);
+            return 1;
+};

@@ -23,3 +23,12 @@ void BitmapMerge(BitMap* bitmap, int idx);
 void SetParents(BitMap *bitmap1, int status, int numBit);
 //imposta lo stato di tutti i nodi figli
 void SetChildren(BitMap *bitmap1, int status, int numBit);
+
+//inizializza il buddy allocator e controlla se c'è abbastanza spazio nel buffer
+int BuddyAllocator_init(BuddyAllocator* alloc,
+                         int num_levels,
+                         char* alloc_buffer, // buffer per l'allocator
+                         int alloc_buffer_size,
+                         char* bitmap_buffer, // buffer per la bitmap
+                         int bitmap_buffer_size,
+                         int min_bucket_size);
