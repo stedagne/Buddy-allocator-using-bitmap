@@ -3,13 +3,13 @@
 #define MAX_LEVEL 16 //limite al numero di livelli dell'albero
 
 //struttura bitmap
-typedef struct BuddyAllocator{
+typedef struct {
     BitMap bitmap;
     int num_levels;
     char* buffer; 
     int buffer_size;
     int min_bucket_size; //la pagina di RAM minore che può essere ritornata
-}BuddyAllocator;
+} BuddyAllocator;
 
 //segnatura funzioni
 
@@ -25,10 +25,7 @@ void SetParents(BitMap *bitmap1, int status, int numBit);
 void SetChildren(BitMap *bitmap1, int status, int numBit);
 
 //inizializza il buddy allocator e controlla se c'è abbastanza spazio nel buffer
-int BuddyAllocator_init(BuddyAllocator* alloc,
-                         int num_levels,
+int BuddyAllocator_init(BuddyAllocator* alloc,int num_levels,
                          char* alloc_buffer, // buffer per l'allocator
-                         int alloc_buffer_size,
-                         char* bitmap_buffer, // buffer per la bitmap
-                         int bitmap_buffer_size,
-                         int min_bucket_size);
+                         int alloc_buffer_size,char* bitmap_buffer, // buffer per la bitmap
+                         int bitmap_buffer_size,int min_bucket_size);

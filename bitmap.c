@@ -14,7 +14,7 @@ void BitmapSet(BitMap* bitmap, int status, int numBit){
     assert(numByte<bitmap->buffer_size);
     int bitInByte= numBit&0x07; //numBit%8
     if (status){
-        bitmap->buffer[numByte] |= (\<<bitInByte);
+        bitmap->buffer[numByte] |= (1<<bitInByte);
     } else {
         bitmap->buffer[numByte] &= ~(1<<bitInByte);
     }
@@ -23,13 +23,13 @@ void BitmapSet(BitMap* bitmap, int status, int numBit){
 //funzione che ritorna il numero di bytes per immagazzinare i bits di controllo
 int BitmapGetBytes (int bits){
     int surplus = 0;
-    if ((bits%8)!=0) eccesso = 1;
+    if ((bits%8)!=0) surplus = 1;
     return bits/8 +surplus;
     //per contenere tutti i bit necessari prendo il numero di bytes per eccesso
 }
 //inizializza una bitmap su un array 
 void BitmapInit(BitMap* bitmap, char* buffer, int num_bits){
     bitmap->buffer = buffer;
-    bitmap->num_bits = num_bits;
     bitmap->buffer_size=BitmapGetBytes(num_bits);
+    bitmap->num_bits = num_bits;
 }
