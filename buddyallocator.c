@@ -33,13 +33,13 @@ void bitmapPrint (BitMap *bitmap){
     int missingPrint = 0;
     int currentLvl = -1;
     int totLvl = levelIdx(bitmap->num_bits)-1;
-    if (totLvl>5) totLvl = 5; //per visualizzare meglio l'albero
+    if (totLvl>6) totLvl = 6; //per visualizzare meglio l'albero
     for (int i=0; i<bitmap->num_bits;i++){
         if(missingPrint == 0){
             if(currentLvl==totLvl) break;
             printf("\nLivello %d (start bit %d):\t", ++currentLvl,i);
-            for (int j= 0;j<(1<<totLvl)-(1<<currentLvl);j++) printf("  "); //spazi per formattare testo
-            missingPrint =1<<currentLvl; // 2^currentLvl
+            for (int j= 0; j < ((1<<totLvl)-(1<<currentLvl)) ;j++) printf(" "); //spazi per formattare testo
+            missingPrint = 1<<currentLvl; // 2^currentLvl
         }
         printf("%d ", BitmapBit(bitmap,i));
         missingPrint--;
@@ -66,6 +66,8 @@ void* BuddyMalloc(BuddyAllocator* alloc, int size){
 
     if (alloc->buffer_size<size){
         printf("\n***ERRORE*** : il blocco è troppo grande per essere allocato in memoria, la sua dimensione è %d\n ",size);
+        printf("\n");
+		printf("\t\t\t\t\t__________________________________________________\n");
         return NULL;
     }
     //vedo il livello della pagina partendo dal basso
@@ -93,6 +95,8 @@ void* BuddyMalloc(BuddyAllocator* alloc, int size){
     //NULL se non trovo il blocco
     if (freeIdx <0){
         printf("***ERRORE***: memoria terminata, impossibile allocare il nuovo blocco\n");
+        printf("\n");
+		printf("\t\t\t\t\t__________________________________________________\n");
         return NULL;
     }
     SetParents(&alloc->bitmap,1, freeIdx);
@@ -100,15 +104,17 @@ void* BuddyMalloc(BuddyAllocator* alloc, int size){
     char *returning = alloc->buffer + offsetIdx(freeIdx)* sizeStart;
     ((int*)returning)[0] = freeIdx;
     printf("puntatore %p con indice %d\n", returning+sizeof(int),freeIdx);
-    printf("bitmap dopo l'allocazione:");
+    printf("bitmap dopo l'allocazione:\t");
     bitmapPrint(&alloc->bitmap);
+    printf("\n");
+    printf("\t\t\t\t\t__________________________________________________\n");
     return (void *)(returning+sizeof(int));
 }
 //free, rilascia la memoria allocata
 void BuddyFree(BuddyAllocator *alloc, void *memory){
     printf("\nLibero blocco %p\n", memory);
     if(!memory){ //il free di NULL ovviamente è inutile
-        printf("\n***ERRORE***:impossibile fare la free di NULL");
+        printf("\n***ERRORE***:impossibile fare la free di NULL\n");
         return;
     }
     int *pointer = (int *)memory;
@@ -116,16 +122,18 @@ void BuddyFree(BuddyAllocator *alloc, void *memory){
     printf("Indice da liberare : %d\n", idxToFree);
     int sizeLvl = alloc->min_bucket_size*(1<<(alloc->num_levels - levelIdx(idxToFree)));
     char *pointerToFree = alloc->buffer+offsetIdx(idxToFree) *sizeLvl;
-    assert("Puntatore non allineato" && (int *)pointerToFree == &pointer[-1]);
+    assert("Puntatore non allineato\n" && (int *)pointerToFree == &pointer[-1]);
     assert("Double free" && BitmapBit(&alloc->bitmap, idxToFree));
     SetChildren(&alloc->bitmap, 0 ,idxToFree);
     BitmapMerge(&alloc->bitmap,idxToFree);
-    printf("Free terminata, ecco la bitmap corrente:");
+    printf("Free terminata, ecco la bitmap corrente:\t");
     bitmapPrint(&alloc->bitmap);
+    printf("\n");
+    printf("\t\t\t\t\t__________________________________________________\n");
 }
 //merge, unisce bitmap e blocco libero in memoria
 void BitmapMerge(BitMap* bitmap, int idx){
-    assert("***ERRORE***: impossibile fare merge su un bit libero" && !BitmapBit(bitmap,idx));
+    assert("***ERRORE***: impossibile fare merge su un bit libero\n" && !BitmapBit(bitmap,idx));
     if(idx==0) return;
     int buddy_idx = buddyIdx(idx);
     if(!BitmapBit(bitmap,buddy_idx)){
@@ -147,17 +155,17 @@ int BuddyAllocator_init(
     int min_bucket_size){
 
         if (min_bucket_size<8){
-            printf("\n***ERRORE***:Min_bucket_size troppo piccolo");
+            printf("\n***ERRORE***:Min_bucket_size troppo piccolo\n");
             return 0;
         }
-        assert("***ERRORE***:Num livelli troppo grande" && num_levels<MAX_LEVEL);
+        assert("***ERRORE***:Num livelli troppo grande\n" && num_levels<MAX_LEVEL);
         //genero numero di bit per la bitmap ed ogni bit è buddy di min_bucket_size
         int num_bits=(1<<(num_levels+1)) -1; //num allocazioni massime
-        assert("***ERRORE***: Memoria per la bitmap non sufficiente" && bitmap_buffer_size>=BitmapGetBytes(num_bits));
+        assert("***ERRORE***: Memoria per la bitmap non sufficiente\n" && bitmap_buffer_size>=BitmapGetBytes(num_bits));
         //se si usa una potenza di 2 allora posso utilizzare tutta la memoria a disposizione
         if(levelIdx(alloc_buffer_size)!= log2(alloc_buffer_size)){
             printf("**WARNING**:posso utilizzare solo %d bytes di %d forniti.\n",min_bucket_size<<num_levels, alloc_buffer_size);
-            printf("\n*INPUT*:premi 1 per continuare e qualsiasi altro tasto per terminare");
+            printf("\n*INPUT*:premi 1 per continuare e qualsiasi altro tasto per terminare:\t");
             int input;
             scanf("%d", &input);
             if(input!=1)return 0;
@@ -167,8 +175,8 @@ int BuddyAllocator_init(
             alloc->buffer =alloc_buffer;
             alloc->buffer_size =alloc_buffer_size;
             alloc->min_bucket_size=min_bucket_size;
-            printf("INIT\n");
-            printf("\tmemoria gestita: %d bytes\n", alloc_buffer_size); // (1<<num_levels)*min_bucket_size  (2^5)*8 = 256 bytes
+            printf("\t**INIT**\n");
+            printf("\tmemoria gestita: %d bytes\n", alloc_buffer_size); // (1<<num_levels)*min_bucket_size  (2^6)*8 = 512 bytes
             printf("\tlivelli: %d\n", num_levels);
             printf("\tmin_bucket size: %d\n", min_bucket_size);
             printf("\tbits_bitmap: %d\n", num_bits);
@@ -176,5 +184,7 @@ int BuddyAllocator_init(
             BitmapInit(&alloc->bitmap,bitmap_buffer,num_bits);
             printf("bitmap allocata: ");
             bitmapPrint(&alloc->bitmap);
+            printf("\n");
+            printf("\t\t\t\t\t__________________________________________________\n");
             return 1;
 };
